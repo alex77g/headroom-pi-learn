@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "headroom-pi-learn"
+version = "0.1.0"
+description = "headroom learn plugin for the pi coding agent (earendil-works/pi-coding-agent)"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "Alexander Giesa", email = "alexander.giesa@devoteam.com" }]
+keywords = ["headroom", "pi", "token-compression", "coding-agent", "llm"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+  "headroom-ai>=0.27.0",
+]
+
+[project.entry-points."headroom.learn_plugin"]
+pi = "headroom_pi_learn:plugin"
+
+[project.urls]
+Homepage = "https://github.com/alex77g/headroom-pi-learn"
+Issues   = "https://github.com/alex77g/headroom-pi-learn/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["headroom_pi_learn*"]
