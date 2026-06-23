@@ -146,17 +146,12 @@ def main() -> None:
             profile.save(vpath)
             print(f"  [WROTE] {vpath}")
 
-            # Write output_savings.json baseline
+            # Write output_savings.json baseline (headroom's native format)
             bpath = headroom_dir / "output_savings.json"
-            baseline_data = {
-                "strata": {k: {"samples": v} for k, v in baseline.strata.items()},
-                "total_samples": sum(
-                    len(s) if isinstance(s, list) else s
-                    for s in baseline.strata.values()
-                ),
-            }
-            bpath.write_text(json.dumps(baseline_data, indent=2))
-            print(f"  [WROTE] {bpath}  ({len(baseline.strata)} strata)")
+            bpath.write_text(json.dumps(baseline.to_dict(), indent=2))
+            n_strata = len(baseline.strata)
+            n_samples = baseline.glob.n if hasattr(baseline.glob, 'n') else 0
+            print(f"  [WROTE] {bpath}  ({n_strata} strata, {n_samples} total samples)")
 
             # Hot-sync to running proxy
             import urllib.request, urllib.error
