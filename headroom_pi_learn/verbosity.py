@@ -152,6 +152,9 @@ def main() -> None:
             n_strata = len(baseline.strata)
             n_samples = baseline.glob.n if hasattr(baseline.glob, 'n') else 0
             print(f"  [WROTE] {bpath}  ({n_strata} strata, {n_samples} total samples)")
+            if n_strata == 0:
+                print("  NOTE: pi sessions contain no token counts — baseline will")
+                print("        build automatically from live proxy traffic instead.")
 
             # Hot-sync to running proxy
             import urllib.request, urllib.error
