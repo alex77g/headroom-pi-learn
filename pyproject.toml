@@ -28,6 +28,9 @@ dependencies = [
 [project.entry-points."headroom.learn_plugin"]
 pi = "headroom_pi_learn:plugin"
 
+[project.scripts]
+pi-verbosity = "headroom_pi_learn.verbosity:main"
+
 [project.urls]
 Homepage = "https://github.com/alex77g/headroom-pi-learn"
 Issues   = "https://github.com/alex77g/headroom-pi-learn/issues"

@@ -31,20 +31,19 @@ uv tool run --from headroom-ai pip install headroom-pi-learn
 ## Usage
 
 ```bash
-# Dry-run: preview what would be written to CLAUDE.md
+# Dry-run: preview what would be written to CLAUDE.md / AGENT.md
 headroom learn --agent pi --project /path/to/your/project
 
-# Apply: write recommendations to CLAUDE.md
+# Apply: write recommendations
 headroom learn --agent pi --project /path/to/your/project --apply
 
 # All projects at once
-headroom learn --agent pi --all
+headroom learn --agent pi --all --apply
 
-# Auto-detect (pi is included in auto-scan if sessions exist)
-headroom learn --all --apply
-
-# Verbosity calibration (tunes headroom output shaper)
-headroom learn --agent pi --verbosity --apply
+# Verbosity calibration — learn preferred output terseness from pi sessions
+pi-verbosity             # dry-run: shows recommended level
+pi-verbosity --apply     # writes ~/.headroom/verbosity.json + baseline
+                         # hot-syncs to running headroom proxy
 ```
 
 ## How it works
