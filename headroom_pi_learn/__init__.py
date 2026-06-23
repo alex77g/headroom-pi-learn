@@ -27,11 +27,10 @@ from headroom.learn.models import (
     ToolCall,
 )
 from headroom.learn.plugins.claude import (
-    ClaudeCodePlugin,
     _decode_project_path,
     _project_display_name,
 )
-from headroom.learn.writer import ClaudeCodeWriter, ContextWriter
+from headroom.learn.writer import ClaudeCodeWriter, ContextWriter, WriteResult
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +64,7 @@ class PiLearnPlugin(LearnPlugin, ConversationScanner):
         return self.sessions_dir.exists() and any(self.sessions_dir.iterdir())
 
     def create_writer(self) -> ContextWriter:
-        # Pi projects use CLAUDE.md — reuse Claude Code writer
-        return ClaudeCodeWriter()
+        return PiContextWriter()
 
     # ── Project discovery ──────────────────────────────────────────────────
 
@@ -74,6 +72,8 @@ class PiLearnPlugin(LearnPlugin, ConversationScanner):
         """Discover all projects under ~/.pi/agent/sessions/.
 
         Pi uses the same --encoded-path-- directory naming as Claude Code.
+        Context file priority: AGENTS.md > AGENT.md > CLAUDE.md
+        Symlinks are resolved so headroom writes to the real file.
         """
         if not self.sessions_dir.exists():
             return []
@@ -96,12 +96,7 @@ class PiLearnPlugin(LearnPlugin, ConversationScanner):
                 project_path = Path("/" + entry.name.strip("-").replace("-", "/"))
 
             name = _project_display_name(project_path, entry.name)
-
-            context_file: Path | None = None
-            if project_path.exists():
-                claude_md = project_path / "CLAUDE.md"
-                if claude_md.exists():
-                    context_file = claude_md
+            context_file = _find_pi_context_file(project_path)
 
             projects.append(
                 ProjectInfo(
@@ -274,3 +269,42 @@ class PiLearnPlugin(LearnPlugin, ConversationScanner):
 
 # Module-level instance — auto-discovered by headroom's plugin registry
 plugin = PiLearnPlugin()
+
+
+# =============================================================================
+# Pi-specific helpers
+# =============================================================================
+
+# Context file names pi reads, in priority order
+_PI_CONTEXT_NAMES = ("AGENTS.md", "AGENT.md", "CLAUDE.md")
+
+
+def _find_pi_context_file(project_path: Path) -> Path | None:
+    """Find the real context file for a pi project.
+
+    Pi reads AGENTS.md > AGENT.md > CLAUDE.md from the project directory.
+    Symlinks are resolved so headroom writes to the actual file on disk,
+    not through an intermediate symlink.
+    """
+    if not project_path.exists():
+        return None
+    for name in _PI_CONTEXT_NAMES:
+        candidate = project_path / name
+        if candidate.exists():           # follows symlinks
+            return candidate.resolve()   # returns the real file path
+    return None
+
+
+class PiContextWriter(ClaudeCodeWriter):
+    """ClaudeCodeWriter variant that resolves symlinks before writing.
+
+    headroom's stock ClaudeCodeWriter writes to ``project.context_file``
+    as-is. For pi projects that use symlinks (AGENT.md → forge-agent/CLAUDE.md),
+    we need to write to the *resolved* real path — which _find_pi_context_file
+    already provides — so no override is actually needed here.
+
+    This subclass exists as an explicit marker and extension point in case
+    pi-specific write behaviour is needed in the future (e.g. writing to
+    ~/.pi/agent/AGENTS.md instead of a project file).
+    """
+    pass
